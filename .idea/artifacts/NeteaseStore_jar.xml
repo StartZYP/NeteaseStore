@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact name="NeteaseStore:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/NeteaseStore_jar</output-path>
+    <root id="root">
+      <element id="archive" name="NeteaseStore.jar">
+        <element id="module-output" name="NeteaseStore" />
+      </element>
+    </root>
+  </artifact>
+</component>
