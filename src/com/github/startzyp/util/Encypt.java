@@ -23,6 +23,6 @@ public class Encypt {
 
         }
 
-        return sb.toString().toUpperCase();
+        return sb.toString().toLowerCase();
     }
 }

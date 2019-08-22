@@ -4,6 +4,7 @@
     <root id="root">
       <element id="archive" name="NeteaseStore.jar">
         <element id="module-output" name="NeteaseStore" />
+        <element id="extracted-dir" path="D:/javalib/http-request-6.0.jar" path-in-jar="/" />
       </element>
     </root>
   </artifact>

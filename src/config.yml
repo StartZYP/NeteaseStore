@@ -1,0 +1,4 @@
+GameId: 4630067038621234486
+SecretKey: nGgxFLg8n3DSFdHBbMvG9MgMkE7L6ZBZ
+GetGoodsUrl: https://x19mclexpr.nie.netease.com:9090/get-mc-item-order-list
+SendGoodUrl: https://x19mclexpr.nie.netease.com:9090/ship-mc-item-order
