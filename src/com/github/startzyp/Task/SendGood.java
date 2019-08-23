@@ -36,11 +36,8 @@ public class SendGood implements CommandExecutor {
                 Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),cmd.replace("{player}",player.getName()));
                 orderlist.append(orderid).append(",");
             }
-            String json = "{\n" +
-                    "\t\"gameid\": "+neteasestore.GameId+",\n" +
-                    "\t\"uuid\": \""+uniqueId+"\",\n" +
-                    "\t\"orderid_list\": ["+orderlist+"]\n" +
-                    "}";
+            String json = "{\"gameid\": \""+neteasestore.GameId+"\",\"uuid\": \""+uniqueId+"\",\"orderid_list\": ["+orderlist.substring(0,orderlist.length()-1)+"]}";
+            System.out.println(json);
             String KeyCode = "";
             try{
                 KeyCode = Encypt.HMACSHA256("POST/ship-mc-item-order"+json,neteasestore.SecretKey);
