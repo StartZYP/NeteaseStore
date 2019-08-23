@@ -4,6 +4,9 @@ import com.github.kevinsawicki.http.HttpRequest;
 import com.github.startzyp.entity.GoodEntity;
 import com.github.startzyp.neteasestore;
 import com.github.startzyp.util.Encypt;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -12,10 +15,7 @@ import org.bukkit.entity.Player;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class SendGood implements CommandExecutor {
 
@@ -24,24 +24,12 @@ public class SendGood implements CommandExecutor {
         if (commandSender instanceof Player){
             Player player = (Player) commandSender;
             UUID uniqueId = player.getUniqueId();
-            if (!neteasestore.PlayerGoodInfo.containsKey(uniqueId)){
-                player.sendMessage("你没买东西啊");
-                return false;
-            }
-            StringBuilder orderlist = new StringBuilder();
-            List<GoodEntity> goodEntities = neteasestore.PlayerGoodInfo.get(uniqueId);
-            for(GoodEntity tempgood:goodEntities){
-                String cmd = tempgood.getCmd();
-                String orderid = tempgood.getOrderid();
-                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),cmd.replace("{player}",player.getName()));
-                orderlist.append(orderid).append(",");
-            }
-            String json = "{\"gameid\": \""+neteasestore.GameId+"\",\"uuid\": \""+uniqueId+"\",\"orderid_list\": ["+orderlist.substring(0,orderlist.length()-1)+"]}";
-            System.out.println(json);
+            String Json = "{\"gameid\":"+neteasestore.GameId+",\"uuid\":\""+ uniqueId+"\"}";
+            //System.out.println(Json);
             String KeyCode = "";
             try{
-                KeyCode = Encypt.HMACSHA256("POST/ship-mc-item-order"+json,neteasestore.SecretKey);
-                System.out.println("Encrypt:"+KeyCode);
+                KeyCode = Encypt.HMACSHA256("POST/get-mc-item-order-list"+Json,neteasestore.SecretKey);
+                //System.out.println("Encrypt:"+KeyCode);
             }catch (Exception e){
                 System.out.println("加密错误");
             }
@@ -49,16 +37,67 @@ public class SendGood implements CommandExecutor {
             Header.put("content-type","application/json; charset=utf-8");
             Header.put("netease-server-sign", KeyCode);
             Header.put("cache-control","no-cache");
-            String body = HttpRequest.post(neteasestore.SendGoodUrl).headers(Header).send(json).body();
+            String body = HttpRequest.post(neteasestore.GetGoodsUrl).headers(Header).send(Json).body();
             try{
                 body = URLDecoder.decode(body,"UTF-8");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            System.out.println(body);
+            //System.out.println(body);
+            try{
+                JsonObject jsonObject= (JsonObject) new JsonParser().parse(body);
+                JsonArray entities = jsonObject.getAsJsonArray("entities");
+                ArrayList<GoodEntity> GoodList = new ArrayList<>();
+                if (entities.size()==0){
+                    //System.out.println("这个玩家啥都没得");
+                    return true;
+                }
+                for (int i = 0; i <= entities.size()-1; i++) {
+                    JsonObject tem = (JsonObject) entities.get(i);
+                    String orderid = tem.get("orderid").getAsString();
+                    String cmd = tem.get("cmd").getAsString();
+                    //System.out.println("单号："+orderid);
+                    //System.out.println("命令:"+cmd);
+                    GoodList.add(new GoodEntity(orderid,cmd));
+                }
+                commandSender.sendMessage(neteasestore.EnterMsg);
+                neteasestore.PlayerGoodInfo.put(uniqueId,GoodList);
+            }catch (Exception e){
+                System.out.println("Json解析错误");
+            }
+            if (!neteasestore.PlayerGoodInfo.containsKey(uniqueId)){
+                player.sendMessage(neteasestore.GetMsg);
+                return false;
+            }
+            StringBuilder orderlist = new StringBuilder();
+            List<GoodEntity> goodEntities = neteasestore.PlayerGoodInfo.get(uniqueId);
+            if (goodEntities.size()==0){
+                return true;
+            }
+            for(GoodEntity tempgood:goodEntities){
+                String cmd = tempgood.getCmd();
+                String orderid = tempgood.getOrderid();
+                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),cmd.replace("{player}",player.getName()));
+                orderlist.append(orderid).append(",");
+                //System.out.println(goodEntities);
+            }
+            String json = "{\"gameid\": \""+neteasestore.GameId+"\",\"uuid\": \""+uniqueId+"\",\"orderid_list\": ["+orderlist.substring(0,orderlist.length()-1)+"]}";
+            //System.out.println(json);
+            try{
+                KeyCode = Encypt.HMACSHA256("POST/ship-mc-item-order"+json,neteasestore.SecretKey);
+                //System.out.println("Encrypt:"+KeyCode);
+            }catch (Exception e){
+                System.out.println("加密错误");
+            }
+            Map<String,String> Headers= new HashMap<>();
+            Headers.put("content-type","application/json; charset=utf-8");
+            Headers.put("netease-server-sign", KeyCode);
+            Headers.put("cache-control","no-cache");
+            HttpRequest.post(neteasestore.SendGoodUrl).headers(Headers).send(json).body();
+            //System.out.println(body);
             neteasestore.PlayerGoodInfo.remove(uniqueId);
         }
 
-        return false;
+        return true;
     }
 }

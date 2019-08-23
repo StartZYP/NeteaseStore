@@ -2,4 +2,4 @@ name: neteasestore
 main: com.github.startzyp.neteasestore
 version: 1.0
 commands:
-  get:
+  storeget:

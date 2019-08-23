@@ -18,6 +18,8 @@ public class neteasestore extends JavaPlugin {
     public static String SecretKey;
     public static String GetGoodsUrl;
     public static String SendGoodUrl;
+    public static String EnterMsg;
+    public static String GetMsg;
     public static Map<UUID, List<GoodEntity>> PlayerGoodInfo = new HashMap<>();
     @Override
     public void onEnable() {
@@ -32,6 +34,8 @@ public class neteasestore extends JavaPlugin {
         SecretKey = getConfig().getString("SecretKey");
         GetGoodsUrl = getConfig().getString("GetGoodsUrl");
         SendGoodUrl = getConfig().getString("SendGoodUrl");
+        EnterMsg = getConfig().getString("EnterMsg");
+        GetMsg =getConfig().getString("GetMsg");
         System.out.println("GameId:"+GameId);
         System.out.println("SecretKey:"+SecretKey);
         System.out.println("GetGoodsUrl:"+GetGoodsUrl);
@@ -39,7 +43,7 @@ public class neteasestore extends JavaPlugin {
         getServer().getMessenger().registerIncomingPluginChannel(this,"storemod", new NeteaseNetWork ());
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "storemod");
         Bukkit.getServer().getPluginManager().registerEvents(new PlayerListener(),this);
-        Bukkit.getPluginCommand("get").setExecutor(new SendGood());
+        Bukkit.getPluginCommand("storeget").setExecutor(new SendGood());
         super.onEnable();
     }
 }
